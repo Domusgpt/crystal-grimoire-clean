@@ -24,8 +24,8 @@ Since the CLI has TTY issues, **DO THIS MANUALLY** in 3 minutes:
 Name: crystal-grimoire-backend
 Root Directory: backend_crystal
 Environment: Python 3
-Build Command: pip install -r requirements_simple.txt
-Start Command: python simple_backend.py
+Build Command: pip install -r requirements.txt
+Start Command: python app_server.py
 Plan: Free
 ```
 

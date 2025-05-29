@@ -13,15 +13,18 @@
 
 ### 2. Backend Development - READY FOR DEPLOYMENT ✅
 - **Location**: `/backend_crystal/` directory
-- **Main File**: `simple_backend.py` (simplified for reliable deployment)
-- **Dependencies**: `requirements_simple.txt` (only 4 packages)
+- **Main File**: `app_server.py` (FULL BACKEND - NOT simplified version)
+- **Dependencies**: `requirements.txt` (complete backend with all features)
 - **Configuration**: `render.yaml` blueprint ready
 - **Features**:
   - Enhanced spiritual advisor prompt (80%+ accuracy)
-  - Gemini AI integration
-  - Crystal identification API
-  - CORS enabled for Flutter web app
-  - Health checks and monitoring
+  - Gemini AI integration with full mystical voice
+  - User authentication and JWT tokens
+  - Crystal collection management and saving
+  - Usage tracking and subscription limits (Free/Premium/Pro)
+  - SQLite database for user data persistence
+  - Anonymous testing endpoint for demos
+  - Complete API with /auth, /crystal, /collection endpoints
 
 ### 3. Deployment Configuration - COMPLETE ✅
 - **Render CLI**: Installed and authenticated
@@ -42,8 +45,8 @@
 3. Select: `crystal-grimoire-clean`
 4. Configure:
    - Root Directory: `backend_crystal`
-   - Build Command: `pip install -r requirements_simple.txt`
-   - Start Command: `python simple_backend.py`
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `python app_server.py`
    - Plan: Free
 5. Deploy
 
