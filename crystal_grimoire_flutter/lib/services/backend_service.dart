@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/backend_config.dart';
 import '../models/crystal.dart';
+import '../models/birth_chart.dart';
+import '../models/crystal_collection.dart';
 import 'platform_file.dart';
+import 'storage_service.dart';
 
 /// Service for communicating with the CrystalGrimoire backend
 class BackendService {
@@ -142,6 +145,22 @@ class BackendService {
       request.fields['description'] = userContext ?? '';
       if (sessionId != null) {
         request.fields['session_id'] = sessionId;
+      }
+      
+      // Add birth chart context if available
+      final birthChartData = await StorageService.getBirthChart();
+      if (birthChartData != null) {
+        final birthChart = BirthChart.fromJson(birthChartData);
+        final spiritualContext = birthChart.getSpiritualContext();
+        
+        // Add astrological context to the request
+        request.fields['astrological_context'] = jsonEncode({
+          'sun_sign': spiritualContext['sunSign'],
+          'moon_sign': spiritualContext['moonSign'],
+          'ascendant': spiritualContext['ascendant'],
+          'dominant_elements': spiritualContext['dominantElements'],
+          'recommended_crystals': spiritualContext['recommendations'],
+        });
       }
       
       final streamedResponse = await request.send().timeout(BackendConfig.uploadTimeout);

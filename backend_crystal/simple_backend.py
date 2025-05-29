@@ -82,7 +82,7 @@ ESSENTIAL GUIDELINES:
 Remember: You are a bridge between the mineral kingdom and human consciousness,
 helping souls connect with their crystalline teachers and guides."""
 
-async def call_gemini_api(images: List[UploadFile], description: str) -> tuple[str, str]:
+async def call_gemini_api(images: List[UploadFile], description: str, astrological_context: Optional[str] = None) -> tuple[str, str]:
     """Call Gemini API for crystal identification"""
     
     try:
@@ -98,11 +98,26 @@ async def call_gemini_api(images: List[UploadFile], description: str) -> tuple[s
                 }
             })
         
+        # Build prompt with astrological context if available
+        user_prompt = description or 'Please identify this crystal and provide spiritual guidance.'
+        
+        if astrological_context:
+            astro_data = json.loads(astrological_context)
+            user_prompt += f"\n\nThe seeker's astrological profile:\n"
+            user_prompt += f"Sun: {astro_data.get('sun_sign', {}).get('sign', 'Unknown')}\n"
+            user_prompt += f"Moon: {astro_data.get('moon_sign', {}).get('sign', 'Unknown')}\n"
+            user_prompt += f"Ascendant: {astro_data.get('ascendant', {}).get('sign', 'Unknown')}\n"
+            
+            elements = astro_data.get('dominant_elements', {})
+            if elements:
+                user_prompt += f"Dominant elements: {', '.join([f'{k}: {v}' for k, v in elements.items()])}\n"
+            
+            user_prompt += "\nPlease incorporate their astrological energies into your crystal guidance."
+        
         # Build Gemini request
         parts = [
             {
-                'text': SPIRITUAL_PROMPT + '\n\n' + 
-                       (description or 'Please identify this crystal and provide spiritual guidance.')
+                'text': SPIRITUAL_PROMPT + '\n\n' + user_prompt
             }
         ] + image_parts
         
@@ -190,7 +205,8 @@ async def health():
 async def identify_crystal(
     images: List[UploadFile] = File(...),
     description: str = Form(""),
-    session_id: Optional[str] = Form(None)
+    session_id: Optional[str] = Form(None),
+    astrological_context: Optional[str] = Form(None)
 ):
     """Identify crystal with enhanced spiritual guidance"""
     
@@ -200,8 +216,8 @@ async def identify_crystal(
     session_id = session_id or str(uuid.uuid4())
     
     try:
-        # Call Gemini API
-        identified_crystal, full_response = await call_gemini_api(images, description)
+        # Call Gemini API with astrological context
+        identified_crystal, full_response = await call_gemini_api(images, description, astrological_context)
         
         # Parse confidence based on mystical expressions
         confidence = 0.7

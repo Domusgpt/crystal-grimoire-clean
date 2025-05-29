@@ -1,185 +1,176 @@
-# 🔮 CrystalGrimoire - AI Crystal Identification & Spiritual Guidance
+# 🔮 Crystal Grimoire - Enhanced Mystical Crystal Companion
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.10+-blue)
 ![Python](https://img.shields.io/badge/Python-3.8+-green)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
-![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Mobile%20%7C%20Desktop-orange)
+![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Mobile-orange)
 
-A mystical crystal identification app that combines cutting-edge AI with spiritual wisdom to help seekers identify and connect with their crystalline companions.
+A mystical crystal identification app that combines AI-powered recognition with personalized spiritual guidance, featuring beautiful animations and astrological integration.
 
-## ✨ Features
+## ✨ Latest Updates (May 2025)
 
-- 📸 **AI-Powered Identification**: Take a photo and get instant crystal identification with 80%+ accuracy
-- 🔮 **Spiritual Guidance**: Receive personalized metaphysical insights and chakra connections
-- 📚 **Crystal Journal**: Track your collection and spiritual experiences
-- 💎 **Multi-Platform**: Works on Web, iOS, Android, and Desktop
-- 🎯 **Expert-Level Accuracy**: Enhanced mineralogy AI prompt for professional-grade identification
-- 💜 **Beautiful UI**: Mystical purple theme with smooth animations
+### 🎨 Enhanced Journal System
+- **Unique Color Schemes**: Each section has its own mystical palette
+- **Parallax Scrolling**: Floating background particles with depth effects  
+- **Micro-Animations**: Breathing buttons, floating cards, pulsing glows
+- **Smart Display**: Chakra indicators and usage tags on crystal cards
+
+### 🌟 Birth Chart Integration (Premium)
+- **Free Astrology API**: Accurate planetary calculations at no cost
+- **Personalized AI Guidance**: Based on your sun, moon, and rising signs
+- **Crystal Compatibility**: Recommendations aligned with your zodiac energies
+- **Beautiful Visualization**: Animated starfield and rotating zodiac wheel
+
+### 💎 Enhanced Crystal Properties
+- **Primary Uses Section**: Visual tags for meditation, healing, protection
+- **Smart Icons**: Context-aware icons for different applications
+- **Auto-Save Feature**: Quick save identified crystals to collection
+- **Rich Metadata**: Track size, quality, source, and personal notes
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Flutter SDK (3.10+)
-- Python 3.8+
-- Git
+```bash
+# Clone and navigate to Flutter app
+git clone https://github.com/Domusgpt/crystal-grimoire-clean.git
+cd crystal-grimoire-clean/crystal_grimoire_flutter
 
-### Installation
+# Install dependencies
+flutter pub get
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/[YOUR_USERNAME]/crystal-grimoire-clean.git
-   cd crystal-grimoire-clean
-   ```
+# Run the app
+flutter run -d chrome
+```
 
-2. **Set up the backend**
-   ```bash
-   cd backend_crystal
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   
-   # Add your Gemini API key to .env
-   echo "GEMINI_API_KEY=your-key-here" > .env
-   
-   # Start the server
-   python app_server.py
-   ```
+## 📱 Core Features
 
-3. **Set up Flutter app**
-   ```bash
-   # In a new terminal
-   cd crystal_grimoire_flutter
-   flutter pub get
-   
-   # Run on web
-   flutter run -d chrome
-   
-   # Run on mobile
-   flutter run
-   ```
+### Free Tier
+- **AI Crystal Identification**: 10 identifications per month
+- **Basic Collection**: Track your crystals
+- **Spiritual Guidance**: General metaphysical insights
+- **Beautiful Animations**: Full UI experience
 
-## 🏗️ Architecture
+### Premium ($9.99/month)
+- **Unlimited Identifications**: No monthly limits
+- **Birth Chart Integration**: Personalized astrological guidance
+- **Enhanced Insights**: Deeper spiritual analysis
+- **Priority Support**: Direct access to team
+
+### Pro ($19.99/month)
+- **Multiple AI Models**: GPT-4, Claude, Gemini
+- **Advanced Features**: Beta access to new tools
+- **API Access**: Build custom integrations
+- **White-label Options**: Brand customization
+
+## 🎯 Key Technologies
+
+- **Frontend**: Flutter 3.10+ (Web/Mobile)
+- **Backend**: Python FastAPI with Gemini AI
+- **Astrology**: Free Astrology API integration
+- **Animations**: Custom parallax and micro-animations
+- **Storage**: Local with SharedPreferences
+- **Deployment**: Vercel (Frontend) + Render (Backend)
+
+## 🌟 Unique Features
+
+### Mystical Animations
+- Dynamic color schemes per journal section
+- Parallax scrolling with floating particles
+- Breathing effects on interactive elements
+- Smooth transitions between screens
+
+### Astrological Integration
+- Birth chart calculation with planetary positions
+- Zodiac-based crystal recommendations
+- AI guidance incorporating astrological profile
+- Beautiful cosmic visualizations
+
+### Enhanced UX
+- Auto-save identified crystals to collection
+- Smart usage tracking and insights
+- Chakra indicators on crystal cards
+- Context-aware iconography
+
+## 📂 Project Structure
 
 ```
-CrystalGrimoire/
-├── crystal_grimoire_flutter/    # Flutter cross-platform app
+crystal-grimoire-clean/
+├── crystal_grimoire_flutter/     # Flutter app
 │   ├── lib/
-│   │   ├── screens/           # UI screens
-│   │   ├── services/          # AI integration, caching
-│   │   ├── models/           # Data models
-│   │   └── widgets/          # Reusable components
-│   └── web/                   # Web-specific files
-│
-└── backend_crystal/           # FastAPI backend
-    ├── app_server.py         # Main server with auth & AI
-    └── app/                  # API routes and services
+│   │   ├── models/              # Data models
+│   │   ├── services/            # Business logic  
+│   │   ├── screens/             # UI screens
+│   │   └── widgets/             # Reusable components
+│   └── README.md                # Detailed Flutter docs
+├── backend_crystal/             # Python backend
+│   ├── simple_backend.py        # Gemini AI integration
+│   └── requirements_simple.txt  # Dependencies
+├── archive/                     # Old documentation
+├── DEVELOPMENT_STATUS.md        # Current project status
+├── QUICK_START_GUIDE.md         # Setup instructions
+└── TERMINAL_RESTART_CHECKLIST.md # Quick reference
+```
+
+## 🚀 Deployment
+
+### Live Deployments
+- **Frontend**: https://crystalgrimoireflutter-domusgpt-domusgpts-projects.vercel.app
+- **Backend**: Ready for Render deployment
+
+### Build Commands
+```bash
+# Build for production
+flutter build web --dart-define=FLUTTER_WEB_USE_SKIA=true
+
+# Deploy to Vercel
+vercel --prod
 ```
 
 ## 🔧 Configuration
 
-### Backend Configuration
-Create a `.env` file in `backend_crystal/`:
-```env
-GEMINI_API_KEY=your-gemini-api-key
-SECRET_KEY=your-secret-key
-DATABASE_URL=sqlite:///crystal_grimoire.db
-```
-
-### Flutter Configuration
-Update `lib/config/api_config.dart`:
+### Backend URL
+Configure in `/crystal_grimoire_flutter/lib/config/backend_config.dart`:
 ```dart
-class ApiConfig {
-  static const String geminiApiKey = 'your-key-here';
-  static const String backendUrl = 'http://localhost:8000';
-}
+static const String baseUrl = 'https://your-backend-url.com';
 ```
 
-## 📱 Platform-Specific Setup
+### Astrology API
+Uses freeastrologyapi.com (100% free, no key required)
 
-### iOS
-```bash
-cd crystal_grimoire_flutter/ios
-pod install
-flutter build ios
-```
+## 📖 Documentation
 
-### Android
-```bash
-flutter build apk --release
-# or for Play Store:
-flutter build appbundle --release
-```
+- **[Development Status](DEVELOPMENT_STATUS.md)** - Complete feature overview
+- **[Quick Start Guide](QUICK_START_GUIDE.md)** - Setup instructions
+- **[Flutter README](crystal_grimoire_flutter/README.md)** - Detailed app docs
+- **[Archive](archive/)** - Previous documentation versions
 
-### Web Deployment
-```bash
-flutter build web --release
-# Deploy build/web folder to your hosting
-```
+## 🎯 Testing the App
 
-## 🧪 Testing
+1. **Journal Animations**: Switch tabs to see color transitions
+2. **Birth Chart**: Settings → Birth Chart (Premium feature)
+3. **Crystal ID**: Camera → Upload photo → See enhanced results
+4. **Collection**: Save crystals → View in Journal with new features
 
-```bash
-# Backend tests
-cd backend_crystal
-pytest
+## 🤝 Contributing
 
-# Flutter tests
-cd crystal_grimoire_flutter
-flutter test
-```
-
-## 🚢 Deployment
-
-### Backend (Fly.io)
-```bash
-cd backend_crystal
-fly launch
-fly deploy
-```
-
-### Frontend (Vercel/Netlify)
-```bash
-cd crystal_grimoire_flutter
-flutter build web --release
-# Deploy build/web folder
-```
-
-## 💰 Monetization
-
-- **Free Tier**: 10 identifications/month
-- **Premium**: $9.99/month - Unlimited IDs, spiritual chat
-- **Pro**: $19.99/month - Advanced features, API access
-
-## 🛣️ Roadmap
-
-- [x] Core crystal identification
-- [x] Enhanced AI accuracy (80%+)
-- [ ] Crystal journal feature
-- [ ] Payment integration
-- [ ] Mobile app store launch
-- [ ] Desktop applications
-- [ ] Community features
-
-## 🔒 Proprietary Software
-
-This is proprietary software owned by Paul Phillips. For licensing inquiries, please contact: phillips.paul.email@gmail.com
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
 
 ## 📄 License
 
-This project is PROPRIETARY SOFTWARE. All rights reserved. See the [LICENSE](LICENSE) file for details.
+Proprietary - All rights reserved
 
-## 🙏 Acknowledgments
+## 💜 Acknowledgments
 
-- Google Gemini AI for powerful vision capabilities
-- Flutter team for the amazing framework
-- Crystal healing community for inspiration
-
-## 📧 Contact
-
-- Email: support@crystalgrimoire.app
-- Discord: [Join our community](#)
-- Twitter: [@CrystalGrimoire](#)
+- **Gemini AI** for crystal identification
+- **Free Astrology API** for birth chart calculations  
+- **Flutter Team** for the amazing framework
+- **Our Community** for inspiration and feedback
 
 ---
 
-**Made with 💜 and ✨ for crystal seekers everywhere**
+**Made with 💜 and ✨ by the Crystal Grimoire Team**
+
+*Transform your crystal journey with AI-powered identification and personalized spiritual guidance.*

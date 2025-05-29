@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/crystal.dart';
+import '../models/crystal_collection.dart';
 import '../services/platform_file.dart';
+import '../services/collection_service.dart';
 import '../widgets/animations/mystical_animations.dart';
 import '../widgets/common/mystical_button.dart';
 import '../widgets/common/mystical_card.dart';
+import '../screens/journal_screen.dart';
+import '../screens/add_crystal_screen.dart';
 
 class ResultsScreen extends StatefulWidget {
   final CrystalIdentification identification;
@@ -75,17 +79,94 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     super.dispose();
   }
   
-  void _saveToCollection() {
-    setState(() => _isSaved = true);
+  void _saveToCollection() async {
+    final crystal = widget.identification.crystal;
+    if (crystal == null) return;
+    
     HapticFeedback.mediumImpact();
     
-    // TODO: Actually save to collection
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✨ Crystal saved to your collection!'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    try {
+      // Show dialog to get additional collection details
+      final result = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Theme.of(context).cardColor,
+          title: const Text(
+            '✨ Add to Collection',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Add ${crystal.name} to your crystal collection?',
+                style: const TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'You can add more details like source, size, and uses in the next step.',
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Add to Collection'),
+            ),
+          ],
+        ),
+      );
+      
+      if (result == true) {
+        // Navigate to add crystal screen with pre-filled data
+        final success = await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AddCrystalScreen(crystal: crystal),
+          ),
+        );
+        
+        if (success == true || mounted) {
+          setState(() => _isSaved = true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text('✨ ${crystal.name} added to your collection!'),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              action: SnackBarAction(
+                label: 'View Collection',
+                textColor: Colors.white,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const JournalScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving crystal: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -176,6 +257,10 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                           
                           // Healing properties
                           _buildHealingSection(crystal),
+                          const SizedBox(height: 24),
+                          
+                          // Primary uses and applications
+                          _buildUsesSection(crystal),
                           const SizedBox(height: 24),
                           
                           // Mystical message
@@ -581,7 +666,12 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
               Expanded(
                 child: MysticalButton(
                   onPressed: () {
-                    // TODO: Navigate to journal
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const JournalScreen(),
+                      ),
+                    );
                   },
                   label: 'Journal',
                   icon: Icons.edit_note,
@@ -628,6 +718,161 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
         ),
       ],
     );
+  }
+  
+  Widget _buildUsesSection(Crystal crystal) {
+    final theme = Theme.of(context);
+    final uses = crystal.properties['primaryUses'] as List<String>? ?? 
+                 crystal.properties['uses'] as List<String>? ?? 
+                 ['Meditation', 'Energy work', 'Spiritual guidance'];
+    
+    return FadeScaleIn(
+      delay: const Duration(milliseconds: 900),
+      child: MysticalCard(
+        gradientColors: [
+          Colors.amber.withOpacity(0.3),
+          Colors.orange.withOpacity(0.2),
+        ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                PulsingGlow(
+                  glowColor: Colors.amber,
+                  child: Icon(
+                    Icons.auto_fix_high,
+                    color: Colors.amber,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ShimmeringText(
+                  text: 'Primary Uses & Applications',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            Text(
+              'This crystal is particularly powerful for:',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.amber.withOpacity(0.9),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            // Uses grid
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: uses.asMap().entries.map((entry) {
+                final index = entry.key;
+                final use = entry.value;
+                
+                return FadeScaleIn(
+                  delay: Duration(milliseconds: 1000 + (index * 100)),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.amber.withOpacity(0.3),
+                          Colors.orange.withOpacity(0.2),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.amber.withOpacity(0.5),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.amber.withOpacity(0.2),
+                          blurRadius: 6,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getUseIcon(use),
+                          size: 16,
+                          color: Colors.amber,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          use,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Application suggestion
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.amber.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    color: Colors.amber,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Try placing this crystal on your ${crystal.chakras.isNotEmpty ? crystal.chakras.first.toLowerCase() : "heart"} chakra during meditation for enhanced effects.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.amber.withOpacity(0.9),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  IconData _getUseIcon(String use) {
+    final lowerUse = use.toLowerCase();
+    if (lowerUse.contains('meditat')) return Icons.self_improvement;
+    if (lowerUse.contains('heal')) return Icons.healing;
+    if (lowerUse.contains('protect')) return Icons.shield;
+    if (lowerUse.contains('love') || lowerUse.contains('heart')) return Icons.favorite;
+    if (lowerUse.contains('energy')) return Icons.flash_on;
+    if (lowerUse.contains('peace') || lowerUse.contains('calm')) return Icons.spa;
+    if (lowerUse.contains('ground')) return Icons.landscape;
+    if (lowerUse.contains('clarity') || lowerUse.contains('focus')) return Icons.visibility;
+    if (lowerUse.contains('manifest')) return Icons.auto_fix_high;
+    return Icons.auto_awesome;
   }
   
   String _getConfidenceText(double confidence) {

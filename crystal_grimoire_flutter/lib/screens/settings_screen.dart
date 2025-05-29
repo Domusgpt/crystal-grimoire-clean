@@ -7,6 +7,11 @@ import '../services/usage_tracker.dart';
 import '../services/backend_service.dart';
 import '../services/collection_service.dart';
 import '../widgets/common/mystical_card.dart';
+import '../widgets/common/mystical_button.dart';
+import '../widgets/animations/mystical_animations.dart';
+import '../services/storage_service.dart';
+import '../models/birth_chart.dart';
+import 'birth_chart_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -62,6 +67,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _buildAIProviderSection(),
                       const SizedBox(height: 24),
                       _buildUsageStatsSection(),
+                      const SizedBox(height: 24),
+                      _buildBirthChartSection(),
                       const SizedBox(height: 24),
                       _buildAppSettingsSection(),
                       const SizedBox(height: 24),
@@ -257,6 +264,164 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildStatRow('Crystals in Collection', '${CollectionService.collection.length}'),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBirthChartSection() {
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: StorageService.getBirthChart(),
+      builder: (context, snapshot) {
+        final hasChart = snapshot.hasData && snapshot.data != null;
+        
+        return MysticalCard(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        PulsingGlow(
+                          glowColor: Colors.amber,
+                          child: const Icon(
+                            Icons.stars,
+                            color: Colors.amber,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Birth Chart',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_currentPlan == 'premium' || _currentPlan == 'pro' || _currentPlan == 'founders')
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.amber.withOpacity(0.5)),
+                        ),
+                        child: const Text(
+                          'PREMIUM',
+                          style: TextStyle(
+                            color: Colors.amber,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                if (hasChart) ...[
+                  // Display existing chart info
+                  FutureBuilder<BirthChart>(
+                    future: Future.value(BirthChart.fromJson(snapshot.data!)),
+                    builder: (context, chartSnapshot) {
+                      if (!chartSnapshot.hasData) return const SizedBox();
+                      
+                      final chart = chartSnapshot.data!;
+                      return Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white.withOpacity(0.1)),
+                            ),
+                            child: Row(
+                              children: [
+                                // Sun sign
+                                _buildMiniZodiac('Sun', chart.sunSign),
+                                const SizedBox(width: 16),
+                                // Moon sign
+                                _buildMiniZodiac('Moon', chart.moonSign),
+                                const SizedBox(width: 16),
+                                // Rising sign
+                                _buildMiniZodiac('Rising', chart.ascendant),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          MysticalButton(
+                            onPressed: () => _navigateToBirthChart(),
+                            label: 'View Full Chart',
+                            icon: Icons.open_in_new,
+                            width: double.infinity,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ] else ...[
+                  // No chart yet
+                  Text(
+                    _currentPlan == 'free' 
+                      ? 'Upgrade to Premium to unlock personalized astrological guidance'
+                      : 'Add your birth details for personalized crystal recommendations',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  MysticalButton(
+                    onPressed: _currentPlan == 'free' ? _showUpgradeDialog : _navigateToBirthChart,
+                    label: _currentPlan == 'free' ? 'Upgrade to Unlock' : 'Add Birth Chart',
+                    icon: _currentPlan == 'free' ? Icons.lock : Icons.add,
+                    isPrimary: true,
+                    width: double.infinity,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  
+  Widget _buildMiniZodiac(String label, ZodiacSign sign) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.5),
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            sign.symbol,
+            style: const TextStyle(
+              fontSize: 20,
+              color: Colors.amber,
+            ),
+          ),
+          Text(
+            sign.name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -781,6 +946,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _openTerms() {
     // TODO: Open terms of service
+  }
+
+  void _navigateToBirthChart() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const BirthChartScreen(),
+      ),
+    );
+  }
+  
+  void _showUpgradeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: MysticalTheme.cardColor,
+        title: Row(
+          children: [
+            const Icon(Icons.stars, color: Colors.amber),
+            const SizedBox(width: 8),
+            const Text(
+              'Unlock Astrological Guidance',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Premium features include:',
+              style: TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 16),
+            _buildFeatureRow('Personalized birth chart analysis'),
+            _buildFeatureRow('Crystal recommendations based on your astrology'),
+            _buildFeatureRow('Enhanced spiritual guidance'),
+            _buildFeatureRow('Unlimited crystal identifications'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Maybe Later'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _changePlan('premium');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+            ),
+            child: const Text('Upgrade to Premium'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildFeatureRow(String feature) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: Colors.green, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              feature,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
