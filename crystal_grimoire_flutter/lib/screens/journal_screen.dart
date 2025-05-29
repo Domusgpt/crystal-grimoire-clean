@@ -31,16 +31,18 @@ class _JournalScreenState extends State<JournalScreen> with TickerProviderStateM
   
   // Color schemes for different sections
   static const Map<int, List<Color>> _sectionColors = {
-    0: [Color(0xFF6B46C1), Color(0xFF8B5CF6), Color(0xFFA78BFA)], // Purple - All Crystals
-    1: [Color(0xFFEC4899), Color(0xFFF472B6), Color(0xFFFBBF24)], // Pink/Gold - Favorites
-    2: [Color(0xFF059669), Color(0xFF10B981), Color(0xFF34D399)], // Green - By Purpose
-    3: [Color(0xFF0EA5E9), Color(0xFF3B82F6), Color(0xFF6366F1)], // Blue - Insights
+    0: [Color(0xFF6B46C1), Color(0xFF8B5CF6), Color(0xFFA78BFA)], // Purple - Journal
+    1: [Color(0xFFEC4899), Color(0xFFF472B6), Color(0xFFFBBF24)], // Pink/Gold - Collection
+    2: [Color(0xFF0EA5E9), Color(0xFF3B82F6), Color(0xFF6366F1)], // Blue - Insights
+    3: [Color(0xFF059669), Color(0xFF10B981), Color(0xFF34D399)], // Green - Progress
+    4: [Color(0xFF7C3AED), Color(0xFF8B5CF6), Color(0xFFA855F7)], // Purple - Rituals
+    5: [Color(0xFFDC2626), Color(0xFFEF4444), Color(0xFFF87171)], // Red - Goals
   };
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
     
     // Initialize animation controllers
     _parallaxController = AnimationController(
@@ -104,10 +106,12 @@ class _JournalScreenState extends State<JournalScreen> with TickerProviderStateM
                         child: TabBarView(
                           controller: _tabController,
                           children: [
-                            _buildCollectionGrid(),
-                            _buildFavoritesGrid(),
-                            _buildByPurposeView(),
-                            _buildStatsView(),
+                            _buildJournalView(),
+                            _buildCollectionView(),
+                            _buildInsightsView(),
+                            _buildProgressView(),
+                            _buildRitualsView(),
+                            _buildGoalsView(),
                           ],
                         ),
                       ),
@@ -313,15 +317,429 @@ class _JournalScreenState extends State<JournalScreen> with TickerProviderStateM
               ),
             ),
             tabs: [
-              _buildAnimatedTab('All Crystals', Icons.grid_view),
-              _buildAnimatedTab('Favorites', Icons.favorite_border),
-              _buildAnimatedTab('By Purpose', Icons.category),
+              _buildAnimatedTab('Journal', Icons.book),
+              _buildAnimatedTab('Collection', Icons.diamond, isPremium: true),
               _buildAnimatedTab('Insights', Icons.insights),
+              _buildAnimatedTab('Progress', Icons.trending_up, isPremium: true),
+              _buildAnimatedTab('Rituals', Icons.spa, isPremium: true),
+              _buildAnimatedTab('Goals', Icons.track_changes, isPremium: true),
             ],
           );
         },
       ),
     );
+  }
+
+  Widget _buildJournalView() {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildRecentEntries(),
+        const SizedBox(height: 24),
+        _buildJournalPrompts(),
+        const SizedBox(height: 24),
+        _buildDailyReflection(),
+      ],
+    );
+  }
+
+  Widget _buildCollectionView() {
+    return _buildPaywallWrapper(
+      child: _buildCollectionGrid(),
+      feature: "Crystal Collection",
+      description: "Organize and track your crystal collection with detailed metadata.",
+    );
+  }
+
+  Widget _buildInsightsView() {
+    return _buildStatsView(); // Reuse existing stats view
+  }
+
+  Widget _buildProgressView() {
+    return _buildPaywallWrapper(
+      child: _buildProgressContent(),
+      feature: "Spiritual Progress",
+      description: "Track your spiritual journey and growth over time.",
+    );
+  }
+
+  Widget _buildRitualsView() {
+    return _buildPaywallWrapper(
+      child: _buildRitualsContent(),
+      feature: "Ritual Guidance",
+      description: "Access guided rituals, ceremonies, and spiritual practices.",
+    );
+  }
+
+  Widget _buildGoalsView() {
+    return _buildPaywallWrapper(
+      child: _buildGoalsContent(),
+      feature: "Spiritual Goals",
+      description: "Set and track your spiritual intentions and manifestations.",
+    );
+  }
+
+  Widget _buildPaywallWrapper({
+    required Widget child,
+    required String feature,
+    required String description,
+  }) {
+    // For now, show a premium upgrade prompt
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.amber.withOpacity(0.1),
+                  Colors.orange.withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.amber.withOpacity(0.3)),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.diamond,
+                  size: 64,
+                  color: Colors.amber,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Unlock $feature',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Implement premium upgrade
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Premium features coming soon!')),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  child: const Text(
+                    'Upgrade to Premium',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentEntries() {
+    return MysticalCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.auto_stories, color: Colors.purple[300]),
+              const SizedBox(width: 8),
+              const Text(
+                'Recent Journal Entries',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Show recent crystal identifications as journal entries
+          ...CollectionService.collection.take(3).map((entry) => _buildJournalEntryCard(entry)),
+          if (CollectionService.collection.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.add_circle_outline, color: Colors.white.withOpacity(0.6)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Start your crystal journey by identifying your first crystal!',
+                      style: TextStyle(color: Colors.white.withOpacity(0.8)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildJournalEntryCard(CollectionEntry entry) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: _getChakraColor(entry.crystal.chakras.isNotEmpty ? entry.crystal.chakras.first : 'Crown'),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                entry.crystal.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                _formatDate(entry.dateAdded),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.6),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            entry.notes ?? 'A powerful crystal ally has joined your collection.',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 14,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildJournalPrompts() {
+    final prompts = [
+      'How did this crystal make you feel when you first held it?',
+      'What intentions do you set when working with your crystals?',
+      'Describe your meditation experience with your favorite crystal.',
+      'What changes have you noticed since adding crystals to your practice?',
+    ];
+    
+    return MysticalCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.lightbulb_outline, color: Colors.amber[300]),
+              const SizedBox(width: 8),
+              const Text(
+                'Reflection Prompts',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...prompts.map((prompt) => Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.edit, size: 16, color: Colors.white.withOpacity(0.6)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    prompt,
+                    style: TextStyle(color: Colors.white.withOpacity(0.8)),
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDailyReflection() {
+    return MysticalCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.self_improvement, color: Colors.green[300]),
+              const SizedBox(width: 8),
+              const Text(
+                'Daily Reflection',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.green.withOpacity(0.1),
+                  Colors.blue.withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Today\'s Crystal Focus',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Clear Quartz - Amplification & Clarity',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Take a moment to reflect on your intentions and how this crystal can support your spiritual journey today.',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressContent() {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        MysticalCard(
+          child: Column(
+            children: [
+              Text('Spiritual Progress Tracking', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              // Progress charts and metrics would go here
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRitualsContent() {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        MysticalCard(
+          child: Column(
+            children: [
+              Text('Guided Rituals & Ceremonies', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              // Ritual guides would go here
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGoalsContent() {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        MysticalCard(
+          child: Column(
+            children: [
+              Text('Spiritual Goals & Intentions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              // Goal tracking would go here
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    
+    if (difference.inDays == 0) return 'Today';
+    if (difference.inDays == 1) return 'Yesterday';
+    if (difference.inDays < 7) return '${difference.inDays} days ago';
+    return '${date.month}/${date.day}';
+  }
+
+  Color _getChakraColor(String chakra) {
+    switch (chakra.toLowerCase()) {
+      case 'root': return Colors.red;
+      case 'sacral': return Colors.orange;
+      case 'solar plexus': return Colors.yellow;
+      case 'heart': return Colors.green;
+      case 'throat': return Colors.blue;
+      case 'third eye': return Colors.indigo;
+      case 'crown': return Colors.purple;
+      default: return Colors.white;
+    }
   }
 
   Widget _buildCollectionGrid() {
@@ -1027,7 +1445,7 @@ class _JournalScreenState extends State<JournalScreen> with TickerProviderStateM
     );
   }
   
-  Widget _buildAnimatedTab(String text, IconData icon) {
+  Widget _buildAnimatedTab(String text, IconData icon, {bool isPremium = false}) {
     return Tab(
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1035,6 +1453,24 @@ class _JournalScreenState extends State<JournalScreen> with TickerProviderStateM
           Icon(icon, size: 16),
           const SizedBox(width: 8),
           Text(text, style: const TextStyle(fontSize: 12)),
+          if (isPremium) ...[
+            const SizedBox(width: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: Colors.amber,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'PRO',
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
