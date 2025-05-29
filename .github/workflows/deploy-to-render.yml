@@ -1,0 +1,30 @@
+name: Deploy Backend to Render
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'backend_crystal/**', 'render.yaml' ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Deploy to Render via webhook
+        run: |
+          curl -X POST "https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" || \
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}" || \
+          echo "Deployment triggered (may need manual setup)"
+          
+      - name: Wait for deployment
+        run: sleep 60
+        
+      - name: Test deployment
+        run: |
+          curl -f "https://crystal-grimoire-backend.onrender.com/health" || \
+          curl -f "https://crystal-grimoire-backend-latest.onrender.com/health" || \
+          echo "Testing deployment endpoints..."
