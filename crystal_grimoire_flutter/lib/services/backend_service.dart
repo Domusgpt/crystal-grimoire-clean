@@ -364,6 +364,66 @@ class BackendService {
     );
   }
   
+  /// Get personalized spiritual guidance using LLM integration
+  static Future<Map<String, dynamic>> getPersonalizedGuidance({
+    required String guidanceType,
+    required Map<String, dynamic> userProfile,
+    required String customPrompt,
+  }) async {
+    try {
+      final uri = Uri.parse('${BackendConfig.baseUrl}/spiritual/guidance');
+      final request = http.MultipartRequest('POST', uri);
+      
+      // Add headers
+      BackendConfig.headers.forEach((key, value) {
+        request.headers[key] = value;
+      });
+      
+      // Add form fields
+      request.fields['guidance_type'] = guidanceType;
+      request.fields['user_profile'] = jsonEncode(userProfile);
+      request.fields['custom_prompt'] = customPrompt;
+      
+      print('🔮 Requesting personalized guidance: $guidanceType');
+      
+      final streamedResponse = await request.send().timeout(BackendConfig.apiTimeout);
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('✨ Received personalized guidance');
+        return data;
+      } else {
+        print('❌ Guidance request failed: ${response.statusCode}');
+        throw Exception('Failed to get personalized guidance: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error getting personalized guidance: $e');
+      // Return fallback guidance
+      return {
+        'guidance': _getFallbackGuidance(guidanceType),
+        'source': 'fallback',
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+    }
+  }
+  
+  /// Fallback guidance when LLM service is unavailable
+  static String _getFallbackGuidance(String guidanceType) {
+    switch (guidanceType) {
+      case 'daily':
+        return "Beloved seeker, today is a perfect day to connect with your crystal allies. Hold your favorite crystal in meditation and set a clear intention for the day ahead. Trust your intuition to guide you.";
+      case 'crystal_selection':
+        return "Look within your collection and notice which crystal calls to you most strongly today. That crystal has a message for you - listen with your heart.";
+      case 'chakra_balancing':
+        return "Begin with grounding at your root chakra, then slowly work your way up, spending time with each energy center. Use crystals that resonate with each chakra's frequency.";
+      case 'lunar_guidance':
+        return "The moon's energy flows through all crystals. Tonight, place your stones under the night sky to absorb lunar vibrations and cleanse any stagnant energy.";
+      default:
+        return "Take time today to connect with your spiritual practice. Your crystals are here to support and guide you on your journey of growth and discovery.";
+    }
+  }
+
   /// Parse confidence string to double
   static double _parseConfidence(dynamic confidence) {
     if (confidence is double) return confidence;

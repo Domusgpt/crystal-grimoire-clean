@@ -8,6 +8,7 @@ import 'camera_screen.dart';
 import 'collection_screen.dart';
 import 'journal_screen.dart';
 import 'settings_screen.dart';
+import 'metaphysical_guidance_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -209,12 +210,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         FadeScaleIn(
                           delay: const Duration(milliseconds: 1400),
                           child: FeatureCard(
-                            icon: Icons.grid_on,
-                            title: 'Grid Designer',
-                            description: 'Create crystal grids',
-                            iconColor: Colors.green,
-                            isPremium: true,  // Lock behind paywall
-                            onTap: () => _navigateToGridDesigner(context),
+                            icon: Icons.auto_fix_high,
+                            title: 'Metaphysical Guidance',
+                            description: 'Personalized spiritual guidance & tools',
+                            iconColor: Colors.purple,
+                            isPremium: true,  // Premium tier with LLM integration
+                            onTap: () => _navigateToMetaphysicalGuidance(context),
                           ),
                         ),
                         FadeScaleIn(
@@ -281,10 +282,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
   
-  void _navigateToGridDesigner(BuildContext context) {
-    // TODO: Navigate to grid designer screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Opening grid designer...')),
+  void _navigateToMetaphysicalGuidance(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MetaphysicalGuidanceScreen(),
+      ),
     );
   }
   

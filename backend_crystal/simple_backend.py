@@ -365,6 +365,110 @@ async def identify_crystal(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Crystal identification failed: {str(e)}")
 
+@app.post("/api/v1/spiritual/guidance")
+async def get_spiritual_guidance(
+    guidance_type: str = Form(...),
+    user_profile: str = Form(...),
+    custom_prompt: str = Form(...)
+):
+    """Get personalized spiritual guidance using LLM integration"""
+    
+    try:
+        # Parse user profile
+        profile_data = json.loads(user_profile)
+        
+        # Build personalized spiritual guidance prompt
+        spiritual_prompt = f"""You are the CrystalGrimoire Spiritual Advisor, providing deeply personalized metaphysical guidance.
+
+USER'S SPIRITUAL PROFILE:
+{json.dumps(profile_data, indent=2)}
+
+GUIDANCE REQUEST:
+{custom_prompt}
+
+Provide warm, personalized spiritual guidance that:
+1. References their specific crystals and collection
+2. Incorporates their spiritual preferences and patterns
+3. Offers practical, actionable advice
+4. Maintains the mystical, loving tone of a spiritual grandmother
+5. Is encouraging and empowering
+
+Begin with "Ah, beloved seeker..." and provide 2-3 paragraphs of personalized guidance."""
+
+        # Call Gemini API for spiritual guidance
+        request_data = {
+            'contents': [{
+                'parts': [{'text': spiritual_prompt}]
+            }],
+            'generationConfig': {
+                'temperature': 0.8,  # Higher creativity for spiritual guidance
+                'topK': 40,
+                'topP': 0.95,
+                'maxOutputTokens': 1500,
+            },
+            'safetySettings': [
+                {
+                    'category': 'HARM_CATEGORY_HARASSMENT',
+                    'threshold': 'BLOCK_NONE'
+                },
+                {
+                    'category': 'HARM_CATEGORY_HATE_SPEECH',
+                    'threshold': 'BLOCK_NONE'
+                },
+                {
+                    'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                    'threshold': 'BLOCK_NONE'
+                },
+                {
+                    'category': 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                    'threshold': 'BLOCK_NONE'
+                }
+            ]
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{GEMINI_URL}?key={GEMINI_API_KEY}",
+                json=request_data,
+                timeout=30.0
+            )
+        
+        if response.status_code == 200:
+            data = response.json()
+            guidance = data['candidates'][0]['content']['parts'][0]['text']
+            
+            return {
+                "guidance": guidance,
+                "guidance_type": guidance_type,
+                "user_id": profile_data.get('user_id', 'anonymous'),
+                "timestamp": datetime.now().isoformat(),
+                "source": "gemini_ai",
+                "personalization_level": "high"
+            }
+        else:
+            raise Exception(f"Gemini API error: {response.status_code}")
+            
+    except Exception as e:
+        print(f"Spiritual guidance error: {e}")
+        # Return fallback guidance
+        fallback_guidance = {
+            'daily': "Beloved seeker, today is a perfect day to connect with your crystal allies. Take time to hold your favorite stone and set clear intentions for the day ahead.",
+            'crystal_selection': "Look within your collection with fresh eyes today. Notice which crystal calls to you most strongly - that stone has a special message waiting.",
+            'chakra_balancing': "Begin with grounding at your root chakra, then gently work your way up through each energy center with intention and presence.",
+            'lunar_guidance': "The moon's cycles offer powerful energy for cleansing and charging your crystals. Tonight, honor this connection under the night sky.",
+            'manifestation': "Your crystals are powerful allies for manifestation. Choose stones that resonate with your desires and create a sacred space for focused intention.",
+            'healing_session': "Trust your intuition as you select healing crystals from your collection. Place them with intention and allow their energy to flow.",
+            'spiritual_reading': "Your spiritual journey is unfolding perfectly. Each crystal in your collection represents a lesson learned and wisdom gained."
+        }
+        
+        return {
+            "guidance": fallback_guidance.get(guidance_type, fallback_guidance['daily']),
+            "guidance_type": guidance_type,
+            "timestamp": datetime.now().isoformat(),
+            "source": "fallback",
+            "personalization_level": "basic"
+        }
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
