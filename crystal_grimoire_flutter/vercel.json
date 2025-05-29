@@ -1,7 +1,9 @@
 {
-  "buildCommand": "echo 'Already built'",
-  "outputDirectory": ".",
-  "framework": null,
+  "github": {
+    "silent": true
+  },
+  "buildCommand": "echo 'Using pre-built Flutter web files'",
+  "outputDirectory": "build/web",
   "routes": [
     {
       "src": "/(.*)",
