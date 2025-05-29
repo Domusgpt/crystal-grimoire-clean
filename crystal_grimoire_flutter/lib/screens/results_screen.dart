@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:io';
 import '../models/crystal.dart';
+import '../services/platform_file.dart';
 import '../widgets/animations/mystical_animations.dart';
 import '../widgets/common/mystical_button.dart';
 import '../widgets/common/mystical_card.dart';
 
 class ResultsScreen extends StatefulWidget {
   final CrystalIdentification identification;
-  final List<File> images;
+  final List<PlatformFile> images;
 
   const ResultsScreen({
     Key? key,
@@ -214,8 +214,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(22),
                 child: widget.images.isNotEmpty
-                    ? Image.file(
-                        widget.images[_selectedImageIndex],
+                    ? Image.memory(
+                        widget.images[_selectedImageIndex].bytes,
                         fit: BoxFit.cover,
                       )
                     : Container(
@@ -263,8 +263,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Image.file(
-                            widget.images[index],
+                          child: Image.memory(
+                            widget.images[index].bytes,
                             fit: BoxFit.cover,
                           ),
                         ),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../widgets/animations/mystical_animations.dart';
 import '../widgets/common/mystical_button.dart';
 import '../widgets/common/mystical_card.dart';
 import '../services/ai_service.dart';
+import '../services/platform_file.dart';
 import '../models/crystal.dart';
 import '../config/api_config.dart';
 import 'results_screen.dart';
@@ -19,7 +19,7 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> with TickerProviderStateMixin {
   final ImagePicker _picker = ImagePicker();
-  final List<File> _images = [];
+  final List<PlatformFile> _images = [];
   final int _maxImages = 5;
   
   late AnimationController _pulseController;
@@ -85,8 +85,9 @@ class _CameraScreenState extends State<CameraScreen> with TickerProviderStateMix
       );
       
       if (image != null) {
+        final platformFile = await PlatformFile.fromXFile(image);
         setState(() {
-          _images.add(File(image.path));
+          _images.add(platformFile);
           _currentInstructionIndex = _images.length;
         });
         
@@ -108,12 +109,14 @@ class _CameraScreenState extends State<CameraScreen> with TickerProviderStateMix
       );
       
       if (images.isNotEmpty) {
-        setState(() {
-          for (var image in images) {
-            if (_images.length < _maxImages) {
-              _images.add(File(image.path));
-            }
+        final platformFiles = <PlatformFile>[];
+        for (var image in images) {
+          if (_images.length + platformFiles.length < _maxImages) {
+            platformFiles.add(await PlatformFile.fromXFile(image));
           }
+        }
+        setState(() {
+          _images.addAll(platformFiles);
           _currentInstructionIndex = _images.length;
         });
         
@@ -423,8 +426,8 @@ class _CameraScreenState extends State<CameraScreen> with TickerProviderStateMix
                   padding: EdgeInsets.zero,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(18),
-                    child: Image.file(
-                      _images[index],
+                    child: Image.memory(
+                      _images[index].bytes,
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: double.infinity,

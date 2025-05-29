@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
@@ -9,6 +8,7 @@ import '../config/api_config.dart';
 import '../models/crystal.dart';
 import 'cache_service.dart';
 import 'usage_tracker.dart';
+import 'platform_file.dart';
 
 /// Supported AI providers
 enum AIProvider {
@@ -89,7 +89,7 @@ helping souls connect with their crystalline teachers and guides.
 
   /// Identifies a crystal from images with spiritual guidance
   static Future<CrystalIdentification> identifyCrystal({
-    required List<File> images,
+    required List<PlatformFile> images,
     String? userContext,
     String? sessionId,
     AIProvider? provider,
@@ -352,9 +352,9 @@ helping souls connect with their crystalline teachers and guides.
 
   // Helper methods (same as before)
   
-  static Future<String> _prepareImage(File imageFile) async {
+  static Future<String> _prepareImage(PlatformFile imageFile) async {
     try {
-      print('🔮 Processing image: ${imageFile.path}');
+      print('🔮 Processing image: ${imageFile.name}');
       
       // Ultra-simple approach for web compatibility
       // Just read and encode - no image processing that could cause namespace issues
@@ -374,7 +374,7 @@ helping souls connect with their crystalline teachers and guides.
     }
   }
 
-  static Future<String> _generateImageHash(List<File> images) async {
+  static Future<String> _generateImageHash(List<PlatformFile> images) async {
     final concatenatedBytes = <int>[];
     for (final image in images) {
       final bytes = await image.readAsBytes();
@@ -386,7 +386,7 @@ helping souls connect with their crystalline teachers and guides.
   static CrystalIdentification _parseResponse({
     required String response,
     required String sessionId,
-    required List<File> images,
+    required List<PlatformFile> images,
   }) {
     // Extract crystal name and properties from response
     String crystalName = 'Unknown Crystal';
@@ -504,7 +504,7 @@ helping souls connect with their crystalline teachers and guides.
   static Exception _handleError(dynamic error) {
     print('🔮 Handling error: $error');
     
-    if (error is SocketException) {
+    if (error.toString().contains('SocketException')) {
       return Exception('Network error - please check your connection');
     } else if (error.toString().contains('401')) {
       return Exception('Invalid API key - please check your settings');
@@ -524,7 +524,7 @@ helping souls connect with their crystalline teachers and guides.
   }
 
   /// Demo mode identification for testing without API key
-  static CrystalIdentification _getDemoIdentification(String sessionId, List<File> images) {
+  static CrystalIdentification _getDemoIdentification(String sessionId, List<PlatformFile> images) {
     final demoResponses = [
       {
         'name': 'Amethyst',
