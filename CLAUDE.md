@@ -193,7 +193,9 @@ crystal_grimoire_flutter/
 ## Notes for Claude Code
 
 ### 🎯 **Current Status - DEPLOYMENT COMPLETE**
-✅ **Demo Live**: https://crystalgrimoireflutter-np0873i4t-domusgpts-projects.vercel.app
+✅ **LIVE DEMO**: https://crystalgrimoireflutter-domusgpt-domusgpts-projects.vercel.app
+🔮 **Repository**: https://github.com/Domusgpt/crystal-grimoire-clean (Public)
+📁 **Source Code**: Available in repository with full documentation
 
 The mystical crystal identification app is now fully functional with:
 - Multi-provider AI integration (Gemini, OpenAI, Groq)
