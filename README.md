@@ -2,7 +2,7 @@
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.10+-blue)
 ![Python](https://img.shields.io/badge/Python-3.8+-green)
-![License](https://img.shields.io/badge/License-MIT-purple)
+![License](https://img.shields.io/badge/License-Proprietary-red)
 ![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Mobile%20%7C%20Desktop-orange)
 
 A mystical crystal identification app that combines cutting-edge AI with spiritual wisdom to help seekers identify and connect with their crystalline companions.
@@ -160,13 +160,13 @@ flutter build web --release
 - [ ] Desktop applications
 - [ ] Community features
 
-## 🤝 Contributing
+## 🔒 Proprietary Software
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+This is proprietary software owned by Paul Phillips. For licensing inquiries, please contact: phillips.paul.email@gmail.com
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is PROPRIETARY SOFTWARE. All rights reserved. See the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
