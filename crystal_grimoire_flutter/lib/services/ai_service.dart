@@ -5,10 +5,12 @@ import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
 
 import '../config/api_config.dart';
+import '../config/backend_config.dart';
 import '../models/crystal.dart';
 import 'cache_service.dart';
 import 'usage_tracker.dart';
 import 'platform_file.dart';
+import 'backend_service.dart';
 
 /// Supported AI providers
 enum AIProvider {
@@ -95,6 +97,18 @@ helping souls connect with their crystalline teachers and guides.
     AIProvider? provider,
   }) async {
     try {
+      // FIRST: Check if backend is available and preferred
+      if (BackendConfig.useBackend && await BackendConfig.isBackendAvailable()) {
+        print('🔮 AIService routing to BackendService');
+        return await BackendService.identifyCrystal(
+          images: images,
+          userContext: userContext,
+          sessionId: sessionId,
+        );
+      }
+      
+      print('🔮 AIService using direct AI provider (backend not available)');
+
       // Check usage limits
       if (!await UsageTracker.canIdentify()) {
         throw Exception(ApiConfig.quotaExceeded);
