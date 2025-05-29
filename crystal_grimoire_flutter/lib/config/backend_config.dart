@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 /// Backend API Configuration for CrystalGrimoire
 class BackendConfig {
   // Backend API URL - Change this for production
-  static const String baseUrl = 'https://crystal-grimoire-backend.onrender.com/api/v1';
+  static const String baseUrl = 'https://crystal-grimoire-alpha-v1.onrender.com/api/v1';
   
   // Use backend API if available, otherwise use direct AI
   static const bool useBackend = true;
