@@ -5,6 +5,8 @@ import '../widgets/animations/mystical_animations.dart';
 import '../widgets/common/mystical_button.dart';
 import '../widgets/common/mystical_card.dart';
 import '../services/ai_service.dart';
+import '../services/backend_service.dart';
+import '../config/backend_config.dart';
 import '../services/platform_file.dart';
 import '../models/crystal.dart';
 import '../config/api_config.dart';
@@ -163,11 +165,21 @@ class _CameraScreenState extends State<CameraScreen> with TickerProviderStateMix
         );
       }
       
-      // Call AI service for identification
-      final identification = await AIService.identifyCrystal(
-        images: _images,
-        userContext: 'Please identify this crystal with your mystical wisdom.',
-      );
+      // Call backend service if available, otherwise use AI service
+      CrystalIdentification identification;
+      if (BackendConfig.useBackend && await BackendConfig.isBackendAvailable()) {
+        print('🔮 Using backend service for identification');
+        identification = await BackendService.identifyCrystal(
+          images: _images,
+          userContext: 'Please identify this crystal with your mystical wisdom.',
+        );
+      } else {
+        print('🔮 Using direct AI service for identification');
+        identification = await AIService.identifyCrystal(
+          images: _images,
+          userContext: 'Please identify this crystal with your mystical wisdom.',
+        );
+      }
       
       if (mounted) {
         setState(() => _isProcessing = false);
