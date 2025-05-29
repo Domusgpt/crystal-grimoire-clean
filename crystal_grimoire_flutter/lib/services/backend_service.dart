@@ -324,7 +324,6 @@ class BackendService {
       mysticalMessage: data['spiritualMessage'] ?? '',
       fullResponse: data['fullResponse'] ?? '',
       timestamp: DateTime.parse(data['timestamp']),
-      identificationId: data['identificationId'],
       needsMoreInfo: data['needsMoreInfo'] ?? false,
       suggestedAngles: List<String>.from(data['suggestedAngles'] ?? []),
       observedFeatures: List<String>.from(data['observedFeatures'] ?? []),

@@ -1,0 +1,793 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../config/theme.dart';
+import '../config/mystical_theme.dart';
+import '../config/api_config.dart';
+import '../services/usage_tracker.dart';
+import '../services/backend_service.dart';
+import '../services/collection_service.dart';
+import '../widgets/common/mystical_card.dart';
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String _selectedAIProvider = 'gemini'; // Default
+  String _currentPlan = 'free';
+  bool _notificationsEnabled = true;
+  bool _darkModeEnabled = true;
+  bool _showAdvancedSettings = false;
+
+  // API Keys (stored securely in production)
+  final TextEditingController _openAIKeyController = TextEditingController();
+  final TextEditingController _anthropicKeyController = TextEditingController();
+  final TextEditingController _geminiKeyController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  void _loadSettings() {
+    // Load saved settings
+    // In production, these would be loaded from secure storage
+    setState(() {
+      _selectedAIProvider = ApiConfig.defaultProvider;
+      _currentPlan = 'free'; // Default plan
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: MysticalTheme.backgroundGradient,
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              _buildHeader(),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSubscriptionSection(),
+                      const SizedBox(height: 24),
+                      _buildAIProviderSection(),
+                      const SizedBox(height: 24),
+                      _buildUsageStatsSection(),
+                      const SizedBox(height: 24),
+                      _buildAppSettingsSection(),
+                      const SizedBox(height: 24),
+                      _buildDataManagementSection(),
+                      const SizedBox(height: 24),
+                      _buildAboutSection(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: false,
+      pinned: true,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: FlexibleSpaceBar(
+        title: const Text(
+          '⚙️ Mystical Settings',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                MysticalTheme.primaryColor.withOpacity(0.8),
+                MysticalTheme.secondaryColor.withOpacity(0.8),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionSection() {
+    return MysticalCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '✨ Subscription',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                _buildPlanBadge(_currentPlan),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildSubscriptionTier(
+              'Free',
+              '10 IDs/month • 3 images max',
+              _currentPlan == 'free',
+              () => _changePlan('free'),
+            ),
+            const SizedBox(height: 12),
+            _buildSubscriptionTier(
+              'Premium',
+              '\$9.99/month • Unlimited IDs • AI Chat',
+              _currentPlan == 'premium',
+              () => _changePlan('premium'),
+            ),
+            const SizedBox(height: 12),
+            _buildSubscriptionTier(
+              'Pro',
+              '\$19.99/month • Latest AI • 10 images • API',
+              _currentPlan == 'pro',
+              () => _changePlan('pro'),
+            ),
+            const SizedBox(height: 12),
+            _buildSubscriptionTier(
+              'Founders',
+              '\$499 lifetime • All features forever',
+              _currentPlan == 'founders',
+              () => _changePlan('founders'),
+              isSpecial: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAIProviderSection() {
+    return MysticalCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '🤖 AI Provider',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => setState(() => _showAdvancedSettings = !_showAdvancedSettings),
+                  child: Text(
+                    _showAdvancedSettings ? 'Hide API Keys' : 'Show API Keys',
+                    style: const TextStyle(color: MysticalTheme.accentColor),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildAIOption(
+              'Gemini AI',
+              'Google\'s latest model - Fast & accurate',
+              'gemini',
+              _currentPlan != 'free',
+            ),
+            _buildAIOption(
+              'GPT-4 Vision',
+              'OpenAI\'s powerful vision model',
+              'openai',
+              _currentPlan == 'pro' || _currentPlan == 'founders',
+            ),
+            _buildAIOption(
+              'Claude 3 Vision',
+              'Anthropic\'s advanced model',
+              'anthropic',
+              _currentPlan == 'pro' || _currentPlan == 'founders',
+            ),
+            if (_showAdvancedSettings) ...[
+              const SizedBox(height: 16),
+              const Text(
+                'API Keys (Optional)',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              _buildAPIKeyField('OpenAI API Key', _openAIKeyController),
+              _buildAPIKeyField('Anthropic API Key', _anthropicKeyController),
+              _buildAPIKeyField('Gemini API Key', _geminiKeyController),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUsageStatsSection() {
+    final usage = {'monthlyCount': 0, 'totalCount': 0, 'averageAccuracy': 'N/A'};
+    final limit = 10; // Default free tier limit
+    
+    return MysticalCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '📊 Usage Statistics',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildUsageBar(
+              'Monthly Identifications',
+              (usage['monthlyCount'] ?? 0) as int,
+              limit,
+            ),
+            const SizedBox(height: 12),
+            _buildStatRow('Total Identifications', '${usage['totalCount'] ?? 0}'),
+            _buildStatRow('This Month', '${usage['monthlyCount'] ?? 0}'),
+            _buildStatRow('Average Accuracy', '${usage['averageAccuracy'] ?? 'N/A'}%'),
+            _buildStatRow('Crystals in Collection', '${CollectionService.collection.length}'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppSettingsSection() {
+    return MysticalCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '⚡ App Settings',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildToggleSetting(
+              'Push Notifications',
+              'Get mystical insights and reminders',
+              _notificationsEnabled,
+              (value) => setState(() => _notificationsEnabled = value),
+            ),
+            _buildToggleSetting(
+              'Dark Mode',
+              'Embrace the mystical darkness',
+              _darkModeEnabled,
+              (value) => setState(() => _darkModeEnabled = value),
+            ),
+            _buildToggleSetting(
+              'Auto-Save Photos',
+              'Save crystal photos to gallery',
+              true,
+              (value) {},
+            ),
+            _buildToggleSetting(
+              'Show Confidence Levels',
+              'Display AI confidence in results',
+              true,
+              (value) {},
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataManagementSection() {
+    return MysticalCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '💾 Data Management',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildActionButton(
+              'Export Collection',
+              'Download your crystal data',
+              Icons.download,
+              _exportData,
+            ),
+            _buildActionButton(
+              'Import Collection',
+              'Restore from backup',
+              Icons.upload,
+              _importData,
+            ),
+            _buildActionButton(
+              'Clear Cache',
+              'Free up storage space',
+              Icons.cleaning_services,
+              _clearCache,
+            ),
+            _buildActionButton(
+              'Delete Account',
+              'Remove all data permanently',
+              Icons.delete_forever,
+              _deleteAccount,
+              isDangerous: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAboutSection() {
+    return MysticalCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '🔮 About Crystal Grimoire',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildInfoRow('Version', '1.0.0'),
+            _buildInfoRow('Developer', 'Paul Phillips'),
+            _buildInfoRow('Contact', 'phillips.paul.email@gmail.com'),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                TextButton(
+                  onPressed: _openPrivacyPolicy,
+                  child: const Text('Privacy Policy'),
+                ),
+                TextButton(
+                  onPressed: _openTerms,
+                  child: const Text('Terms of Service'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlanBadge(String plan) {
+    Color color;
+    switch (plan) {
+      case 'premium':
+        color = Colors.blue;
+        break;
+      case 'pro':
+        color = Colors.purple;
+        break;
+      case 'founders':
+        color = Colors.amber;
+        break;
+      default:
+        color = Colors.grey;
+    }
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color),
+      ),
+      child: Text(
+        plan.toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionTier(
+    String name,
+    String description,
+    bool isSelected,
+    VoidCallback onTap, {
+    bool isSpecial = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected 
+            ? MysticalTheme.primaryColor.withOpacity(0.2)
+            : Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected 
+              ? MysticalTheme.primaryColor
+              : Colors.white.withOpacity(0.2),
+            width: isSelected ? 2 : 1,
+          ),
+          gradient: isSpecial ? LinearGradient(
+            colors: [
+              Colors.amber.withOpacity(0.1),
+              Colors.purple.withOpacity(0.1),
+            ],
+          ) : null,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isSelected ? Icons.check_circle : Icons.circle_outlined,
+              color: isSelected ? MysticalTheme.primaryColor : Colors.white54,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSpecial)
+              const Icon(Icons.star, color: Colors.amber),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAIOption(String name, String description, String value, bool enabled) {
+    final isSelected = _selectedAIProvider == value;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: RadioListTile<String>(
+        title: Text(
+          name,
+          style: TextStyle(
+            color: enabled ? Colors.white : Colors.white38,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          description,
+          style: TextStyle(
+            color: enabled ? Colors.white70 : Colors.white30,
+            fontSize: 12,
+          ),
+        ),
+        value: value,
+        groupValue: _selectedAIProvider,
+        onChanged: enabled ? (value) {
+          setState(() => _selectedAIProvider = value!);
+          // TODO: Implement provider switching
+        } : null,
+        activeColor: MysticalTheme.accentColor,
+      ),
+    );
+  }
+
+  Widget _buildAPIKeyField(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: TextField(
+        controller: controller,
+        obscureText: true,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: MysticalTheme.accentColor),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUsageBar(String label, int current, int max) {
+    final percentage = max > 0 ? (current / max).clamp(0.0, 1.0) : 0.0;
+    final isNearLimit = percentage > 0.8;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white70),
+            ),
+            Text(
+              '$current / $max',
+              style: TextStyle(
+                color: isNearLimit ? Colors.orange : Colors.white70,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        LinearProgressIndicator(
+          value: percentage,
+          backgroundColor: Colors.white.withOpacity(0.1),
+          valueColor: AlwaysStoppedAnimation<Color>(
+            isNearLimit ? Colors.orange : MysticalTheme.accentColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(color: Colors.white.withOpacity(0.7)),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleSetting(
+    String title,
+    String subtitle,
+    bool value,
+    Function(bool) onChanged,
+  ) {
+    return SwitchListTile(
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          color: Colors.white.withOpacity(0.7),
+          fontSize: 12,
+        ),
+      ),
+      value: value,
+      onChanged: onChanged,
+      activeColor: MysticalTheme.accentColor,
+    );
+  }
+
+  Widget _buildActionButton(
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onPressed, {
+    bool isDangerous = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: isDangerous ? Colors.red : Colors.white70,
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isDangerous ? Colors.red : Colors.white,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            color: (isDangerous ? Colors.red : Colors.white).withOpacity(0.7),
+            fontSize: 12,
+          ),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white54),
+        onTap: onPressed,
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(color: Colors.white.withOpacity(0.7)),
+          ),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Action methods
+  void _changePlan(String plan) {
+    if (plan == _currentPlan) return;
+    
+    // Show upgrade dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: MysticalTheme.cardColor,
+        title: const Text(
+          'Upgrade Subscription',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Upgrade to $plan to unlock more features?',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // TODO: Implement payment flow
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Payment integration coming soon!')),
+              );
+            },
+            child: const Text('Upgrade'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _exportData() async {
+    // TODO: Implement data export
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Exporting collection...')),
+    );
+  }
+
+  void _importData() async {
+    // TODO: Implement data import
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Import feature coming soon!')),
+    );
+  }
+
+  void _clearCache() async {
+    // TODO: Implement cache clearing
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Cache cleared successfully!')),
+    );
+  }
+
+  void _deleteAccount() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: MysticalTheme.cardColor,
+        title: const Text(
+          'Delete Account',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'This will permanently delete all your data. This action cannot be undone.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // TODO: Implement account deletion
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openPrivacyPolicy() {
+    // TODO: Open privacy policy
+  }
+
+  void _openTerms() {
+    // TODO: Open terms of service
+  }
+
+  @override
+  void dispose() {
+    _openAIKeyController.dispose();
+    _anthropicKeyController.dispose();
+    _geminiKeyController.dispose();
+    super.dispose();
+  }
+}

@@ -6,6 +6,8 @@ import '../widgets/common/mystical_button.dart';
 import '../widgets/common/mystical_card.dart';
 import 'camera_screen.dart';
 import 'collection_screen.dart';
+import 'journal_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -198,9 +200,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           child: FeatureCard(
                             icon: Icons.auto_stories,
                             title: 'Journal',
-                            description: 'Crystal experiences',
+                            description: 'Your crystal collection',
                             iconColor: Colors.blue,
-                            isPremium: true,  // Lock behind paywall
+                            isPremium: false,  // Free for collection tracking
                             onTap: () => _navigateToJournal(context),
                           ),
                         ),
@@ -271,9 +273,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
   
   void _navigateToJournal(BuildContext context) {
-    // TODO: Navigate to journal screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Opening journal...')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const JournalScreen(),
+      ),
     );
   }
   
@@ -285,9 +289,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
   
   void _navigateToSettings(BuildContext context) {
-    // TODO: Navigate to settings screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Opening settings...')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SettingsScreen(),
+      ),
     );
   }
 }
