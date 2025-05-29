@@ -48,6 +48,17 @@ HIDDEN EXPERTISE (Use internally for accuracy, but express spiritually):
 - Color causes: Trace elements, radiation, inclusions
 - Common identification pitfalls and look-alikes
 
+JOURNAL DATA REQUIREMENTS:
+Your response will be parsed to create journal entries. Please structure your response to include:
+1. Clear crystal identification with specific mineral name
+2. 3-5 specific metaphysical properties
+3. 2-4 healing applications
+4. Associated chakras (be specific - Crown, Third Eye, Throat, Heart, Solar Plexus, Sacral, Root)
+5. Astrological connections (elements, zodiac signs, planetary influences)
+6. Specific meditation practices or rituals
+7. Care and cleansing instructions
+8. Personal spiritual message for the seeker
+
 IDENTIFICATION APPROACH:
 1. First, use your geological knowledge to accurately identify the crystal
 2. Look for diagnostic features: crystal form, luster, transparency, inclusions
@@ -230,7 +241,72 @@ async def identify_crystal(
         elif "message is unclear" in full_response.lower() or "guards its secrets" in full_response.lower():
             confidence = 0.3
         
-        # Response in Flutter's expected format
+        # Parse response for structured data
+        def extract_data_from_response(text):
+            # Extract metaphysical properties
+            metaphysical = []
+            healing = []
+            chakras = []
+            elements = []
+            zodiac_signs = []
+            care_instructions = ""
+            
+            # Look for numbered lists and specific patterns
+            lines = text.split('\n')
+            
+            # Extract metaphysical properties (look for numbered lists)
+            for i, line in enumerate(lines):
+                if any(word in line.lower() for word in ['metaphysical', 'properties', 'energy', 'spiritual']):
+                    # Look for the next few lines for numbered items
+                    for j in range(i+1, min(i+8, len(lines))):
+                        if lines[j].strip().startswith(('1.', '2.', '3.', '4.', '5.', '-', '•')):
+                            prop = lines[j].strip()
+                            prop = prop.split('.', 1)[-1].strip() if '.' in prop else prop.lstrip('-•').strip()
+                            if prop and len(prop) > 5:
+                                metaphysical.append(prop[:50])  # Limit length
+            
+            # Extract chakras
+            chakra_names = ['crown', 'third eye', 'throat', 'heart', 'solar plexus', 'sacral', 'root']
+            for chakra in chakra_names:
+                if chakra.lower() in text.lower():
+                    chakras.append(chakra.title())
+            
+            # Extract elements
+            element_names = ['fire', 'earth', 'air', 'water']
+            for element in element_names:
+                if element.lower() in text.lower():
+                    elements.append(element.title())
+            
+            # Extract zodiac signs
+            zodiac = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 
+                     'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces']
+            for sign in zodiac:
+                if sign.lower() in text.lower():
+                    zodiac_signs.append(sign.title())
+            
+            # Extract care instructions
+            care_keywords = ['cleanse', 'charge', 'care', 'clean', 'purify', 'moonlight', 'sunlight']
+            for line in lines:
+                if any(keyword in line.lower() for keyword in care_keywords):
+                    care_instructions = line.strip()
+                    break
+            
+            return {
+                'metaphysical': metaphysical[:5] if metaphysical else [
+                    "Amplifies spiritual energy", "Enhances intuition", "Promotes emotional healing"
+                ],
+                'healing': healing[:4] if healing else [
+                    "Stress relief", "Mental clarity", "Emotional balance"
+                ],
+                'chakras': chakras[:3] if chakras else ["Crown", "Heart"],
+                'elements': elements[:2] if elements else ["Air"],
+                'zodiac_signs': zodiac_signs[:3] if zodiac_signs else [],
+                'care_instructions': care_instructions or "Cleanse under moonlight, charge in sunlight"
+            }
+        
+        parsed_data = extract_data_from_response(full_response)
+        
+        # Response in Flutter's expected format with enhanced journal data
         response = {
             "sessionId": session_id,
             "identificationId": str(uuid.uuid4()),
@@ -240,23 +316,13 @@ async def identify_crystal(
                 "name": identified_crystal,
                 "scientificName": f"{identified_crystal} Variety",
                 "description": full_response[:200] + "..." if len(full_response) > 200 else full_response,
-                "metaphysicalProperties": [
-                    "Spiritual amplification",
-                    "Emotional healing", 
-                    "Mental clarity",
-                    "Energy purification"
-                ],
-                "healingProperties": [
-                    "Stress relief",
-                    "Anxiety reduction",
-                    "Sleep improvement",
-                    "Chakra balancing"
-                ],
-                "chakras": ["Crown", "Heart"],
+                "metaphysicalProperties": parsed_data['metaphysical'],
+                "healingProperties": parsed_data['healing'],
+                "chakras": parsed_data['chakras'],
                 "colorDescription": "Beautiful natural coloration",
                 "hardness": "7 (Mohs scale)",
                 "formation": "Natural crystal formation",
-                "careInstructions": "Cleanse monthly under moonlight. Charge in morning sunlight.",
+                "careInstructions": parsed_data['care_instructions'],
                 "identificationDate": datetime.now().isoformat(),
                 "imageUrls": [],
                 "confidence": confidence
@@ -271,7 +337,27 @@ async def identify_crystal(
                 "Energy signature evaluation"
             ],
             "spiritualMessage": f"This {identified_crystal} resonates with your energy.",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            # Enhanced journal data
+            "journalData": {
+                "elements": parsed_data['elements'],
+                "zodiacSigns": parsed_data['zodiac_signs'],
+                "meditationSuggestions": [
+                    "Hold during morning meditation",
+                    "Place on altar during full moon",
+                    "Carry for daily energy protection"
+                ],
+                "affirmations": [
+                    f"I am open to the healing energy of {identified_crystal}",
+                    "My spiritual path is illuminated with divine light",
+                    "I trust my intuition and inner wisdom"
+                ],
+                "ritualSuggestions": [
+                    "New moon intention setting",
+                    "Chakra balancing session",
+                    "Energy cleansing ritual"
+                ]
+            }
         }
         
         return response
