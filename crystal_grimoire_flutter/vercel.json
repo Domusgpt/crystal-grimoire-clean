@@ -1,13 +1,34 @@
 {
+  "version": 2,
+  "public": false,
   "github": {
     "silent": true
   },
-  "buildCommand": "echo 'Using pre-built Flutter web files'",
+  "framework": null,
+  "buildCommand": "echo 'Flutter web app pre-built'",
   "outputDirectory": "build/web",
-  "routes": [
+  "installCommand": "echo 'No install needed'",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
